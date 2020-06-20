@@ -39,7 +39,7 @@ async def test_save_query(app):
             "http://localhost/data/save_query",
             data={
                 "name": "new_query",
-                "sql": "select * from sqlite_master",
+                "sql": "select 1 + 1",
                 "csrftoken": response1.cookies["ds_csrftoken"],
             },
             allow_redirects=False,
@@ -50,9 +50,10 @@ async def test_save_query(app):
             "http://localhost/data/saved_queries.json?_shape=array"
         )
         assert [
-            {
-                "name": "new_query",
-                "sql": "select * from sqlite_master",
-                "author_id": None,
-            }
+            {"name": "new_query", "sql": "select 1 + 1", "author_id": None,}
         ] == response3.json()
+        # ... and that we can run the query
+        response3 = await client.get(
+            "http://localhost/data/new_query.json?_shape=array"
+        )
+        assert [{"1 + 1": 2}] == response3.json()

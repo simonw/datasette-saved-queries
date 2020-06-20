@@ -24,11 +24,19 @@ def canned_queries(datasette, database):
     async def inner():
         db = datasette.get_database(database)
         if await db.table_exists("saved_queries"):
-            return {
-                "save_query": {
-                    "sql": "insert into saved_queries (name, sql) values (:name, :sql)",
-                    "write": True,
-                }
+            queries = {
+                row["name"]: {"sql": row["sql"]}
+                for row in await db.execute("select name, sql from saved_queries")
             }
+            queries.update(
+                {
+                    "save_query": {
+                        "sql": "insert into saved_queries (name, sql) values (:name, :sql)",
+                        "write": True,
+                        "on_success_redirect": "/{}#queries".format(database),
+                    }
+                }
+            )
+            return queries
 
     return inner
