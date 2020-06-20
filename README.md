@@ -14,7 +14,11 @@ Install this plugin in the same environment as Datasette.
 
 ## Usage
 
-Usage instructions go here.
+When the plugin is installed Datasette will automatically create a `saved_queries` table in the first connected database when it starts up.
+
+It also creates a `save_query` writable canned query which you can use to save new queries.
+
+Queries that you save will be added to the query list on the database page.
 
 ## Development
 
