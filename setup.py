@@ -28,9 +28,7 @@ setup(
     version=VERSION,
     packages=["datasette_saved_queries"],
     entry_points={"datasette": ["saved_queries = datasette_saved_queries"]},
-    install_requires=["datasette"],
-    extras_require={
-        "test": ["pytest", "pytest-asyncio", "httpx"]
-    },
+    install_requires=["datasette>=0.45a1", "sqlite-utils"],
+    extras_require={"test": ["pytest", "pytest-asyncio", "httpx"]},
     tests_require=["datasette-saved-queries[test]"],
 )
