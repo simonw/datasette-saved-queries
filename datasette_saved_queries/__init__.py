@@ -17,3 +17,18 @@ def startup(datasette):
         await db.execute_write_fn(create_tables, block=True)
 
     return inner
+
+
+@hookimpl
+def canned_queries(datasette, database):
+    async def inner():
+        db = datasette.get_database(database)
+        if await db.table_exists("saved_queries"):
+            return {
+                "save_query": {
+                    "sql": "insert into saved_queries (name, sql) values (:name, :sql)",
+                    "write": True,
+                }
+            }
+
+    return inner
