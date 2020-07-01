@@ -10,6 +10,19 @@ def create_tables(conn):
         )
 
 
+def actorornull(key, request):
+    if request.actor is None:
+        return None
+    return request.actor.get(key)
+
+
+@hookimpl
+def register_magic_parameters():
+    return [
+        ("actorornull", actorornull),
+    ]
+
+
 @hookimpl
 def startup(datasette):
     async def inner():
@@ -31,7 +44,7 @@ def canned_queries(datasette, database):
             queries.update(
                 {
                     "save_query": {
-                        "sql": "insert into saved_queries (name, sql) values (:name, :sql)",
+                        "sql": "insert into saved_queries (name, sql, author_id) values (:name, :sql, :_actorornull_id)",
                         "write": True,
                         "on_success_redirect": "/{}#queries".format(database),
                     }

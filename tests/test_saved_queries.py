@@ -5,16 +5,16 @@ import httpx
 
 @pytest.fixture
 @pytest.mark.asyncio
-async def app(tmpdir):
+async def ds(tmpdir):
     data = tmpdir / "data.db"
     ds = Datasette([data])
     await ds.invoke_startup()
-    yield ds.app()
+    yield ds
 
 
 @pytest.mark.asyncio
-async def test_plugin_is_installed(app):
-    async with httpx.AsyncClient(app=app) as client:
+async def test_plugin_is_installed(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
         response = await client.get("http://localhost/-/plugins.json")
         assert 200 == response.status_code
         installed_plugins = {p["name"] for p in response.json()}
@@ -22,16 +22,16 @@ async def test_plugin_is_installed(app):
 
 
 @pytest.mark.asyncio
-async def test_table_created(app):
-    async with httpx.AsyncClient(app=app) as client:
+async def test_table_created(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
         response = await client.get("http://localhost/data/saved_queries.json")
         assert 200 == response.status_code
         assert ["name", "sql", "author_id"] == response.json()["columns"]
 
 
 @pytest.mark.asyncio
-async def test_save_query(app):
-    async with httpx.AsyncClient(app=app) as client:
+async def test_save_query(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
         # Get the csrftoken cookie
         response1 = await client.get("http://localhost/data/save_query")
         # Now save a new query
@@ -57,3 +57,26 @@ async def test_save_query(app):
             "http://localhost/data/new_query.json?_shape=array"
         )
         assert [{"1 + 1": 2}] == response3.json()
+
+
+@pytest.mark.asyncio
+async def test_save_query_authenticated_actor(ds):
+    async with httpx.AsyncClient(app=ds.app()) as client:
+        response1 = await client.get("http://localhost/data/save_query")
+        response2 = await client.post(
+            "http://localhost/data/save_query",
+            data={
+                "name": "new_query",
+                "sql": "select 1 + 1",
+                "csrftoken": response1.cookies["ds_csrftoken"],
+            },
+            cookies={"ds_actor": ds.sign({"a": {"id": "root"}}, "actor")},
+            allow_redirects=False,
+        )
+        assert 302 == response2.status_code
+        response3 = await client.get(
+            "http://localhost/data/saved_queries.json?_shape=array"
+        )
+        assert [
+            {"name": "new_query", "sql": "select 1 + 1", "author_id": "root",}
+        ] == response3.json()
