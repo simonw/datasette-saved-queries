@@ -1,7 +1,7 @@
 from setuptools import setup
 import os
 
-VERSION = "0.1"
+VERSION = "0.2"
 
 
 def get_long_description():
@@ -28,7 +28,7 @@ setup(
     version=VERSION,
     packages=["datasette_saved_queries"],
     entry_points={"datasette": ["saved_queries = datasette_saved_queries"]},
-    install_requires=["datasette>=0.45a1", "sqlite-utils"],
+    install_requires=["datasette>=0.45", "sqlite-utils"],
     extras_require={"test": ["pytest", "pytest-asyncio", "httpx"]},
     tests_require=["datasette-saved-queries[test]"],
 )
