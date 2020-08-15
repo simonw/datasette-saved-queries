@@ -27,7 +27,8 @@ def register_magic_parameters():
 def startup(datasette):
     async def inner():
         db = datasette.get_database()
-        await db.execute_write_fn(create_tables, block=True)
+        if db.is_mutable:
+            await db.execute_write_fn(create_tables, block=True)
 
     return inner
 

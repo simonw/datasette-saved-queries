@@ -1,13 +1,20 @@
 from datasette.app import Datasette
 import pytest
+import sqlite3
 import httpx
 
 
 @pytest.fixture
-@pytest.mark.asyncio
-async def ds(tmpdir):
+def db_path(tmpdir):
     data = tmpdir / "data.db"
-    ds = Datasette([data])
+    sqlite3.connect(data).execute("vacuum")
+    yield data
+
+
+@pytest.fixture
+@pytest.mark.asyncio
+async def ds(db_path):
+    ds = Datasette([db_path])
     await ds.invoke_startup()
     yield ds
 
@@ -80,3 +87,9 @@ async def test_save_query_authenticated_actor(ds):
         assert [
             {"name": "new_query", "sql": "select 1 + 1", "author_id": "root",}
         ] == response3.json()
+
+
+@pytest.mark.asyncio
+async def test_dont_crash_on_immutable_database(db_path):
+    ds = Datasette([], immutables=[str(db_path)])
+    await ds.invoke_startup()
