@@ -6,9 +6,9 @@ import httpx
 
 @pytest.fixture
 def db_path(tmpdir):
-    data = tmpdir / "data.db"
+    data = str(tmpdir / "data.db")
     sqlite3.connect(data).execute("vacuum")
-    yield str(data)
+    yield data
 
 
 @pytest.fixture
