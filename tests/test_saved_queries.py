@@ -8,7 +8,7 @@ import httpx
 def db_path(tmpdir):
     data = tmpdir / "data.db"
     sqlite3.connect(data).execute("vacuum")
-    yield data
+    yield str(data)
 
 
 @pytest.fixture
@@ -91,5 +91,5 @@ async def test_save_query_authenticated_actor(ds):
 
 @pytest.mark.asyncio
 async def test_dont_crash_on_immutable_database(db_path):
-    ds = Datasette([], immutables=[str(db_path)])
+    ds = Datasette([], immutables=[db_path])
     await ds.invoke_startup()
