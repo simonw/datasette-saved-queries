@@ -6,7 +6,12 @@ def create_tables(conn):
     db = sqlite_utils.Database(conn)
     if not db["saved_queries"].exists():
         db["saved_queries"].create(
-            {"name": str, "sql": str, "author_id": str,}, pk="name"
+            {
+                "name": str,
+                "sql": str,
+                "author_id": str,
+            },
+            pk="name",
         )
 
 
