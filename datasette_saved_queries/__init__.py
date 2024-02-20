@@ -12,6 +12,7 @@ def create_tables(conn):
                 "author_id": str,
             },
             pk="name",
+            not_null=("name", "sql"),
         )
 
 
